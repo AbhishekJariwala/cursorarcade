@@ -1,0 +1,97 @@
+{
+  "name": "subway-surfers-game",
+  "displayName": "Subway Surfers Game",
+  "description": "Play a Subway Surfers-like game in VS Code",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onCommand:subwaySurfers.test",
+    "onCommand:subwaySurfers.debug",
+    "onCommand:subwaySurfers.start",
+    "onCommand:subwaySurfers.openSidebar",
+    "onCommand:subwaySurfers.openBottom",
+    "onView:subwaySurfersView",
+    "onView:subwaySurfersBottomView"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "subway-surfers",
+          "title": "Subway Surfers",
+          "icon": "media/game.svg"
+        }
+      ],
+      "panel": [
+        {
+          "id": "subway-surfers-panel",
+          "title": "Subway Surfers",
+          "icon": "media/game.svg"
+        }
+      ]
+    },
+    "views": {
+      "subway-surfers": [
+        {
+          "id": "subwaySurfersView",
+          "name": "Game",
+          "type": "webview"
+        }
+      ],
+      "subway-surfers-panel": [
+        {
+          "id": "subwaySurfersBottomView",
+          "name": "Game",
+          "type": "webview"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "subwaySurfers.test",
+        "title": "Test Subway Surfers Extension",
+        "category": "Subway Surfers"
+      },
+      {
+        "command": "subwaySurfers.debug",
+        "title": "Debug Subway Surfers Extension",
+        "category": "Subway Surfers"
+      },
+      {
+        "command": "subwaySurfers.start",
+        "title": "Start Subway Surfers (Tab)",
+        "category": "Subway Surfers"
+      },
+      {
+        "command": "subwaySurfers.openSidebar",
+        "title": "Open Subway Surfers (Sidebar)",
+        "category": "Subway Surfers"
+      },
+      {
+        "command": "subwaySurfers.openBottom",
+        "title": "Open Subway Surfers (Bottom Panel)",
+        "category": "Subway Surfers"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        { "command": "subwaySurfers.openSidebar" },
+        { "command": "subwaySurfers.openBottom" }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "typescript": "^4.9.4"
+  }
+}

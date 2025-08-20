@@ -1,0 +1,245 @@
+import * as vscode from 'vscode';
+import { BaseGame } from './GameInterface';
+import { getNonce, getBasicHtmlTemplate } from '../utils/WebviewUtils';
+
+export class SnakeGame extends BaseGame {
+    getName(): string { return "Snake"; }
+    getIcon(): string { return "🐍"; }
+    getDescription(): string { return "Classic snake game with growing mechanics"; }
+    getId(): string { return "snake"; }
+
+    getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string {
+        const nonce = getNonce();
+        
+        const styles = `
+  body { 
+    margin: 0; 
+    padding: 0; 
+    background: #1a1a1a; 
+    font-family: -apple-system, Segoe UI, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  #gameContainer {
+    border: 2px solid #4CAF50;
+    background: #000;
+    position: relative;
+  }
+  #score {
+    color: #4CAF50;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  #controls {
+    color: #888;
+    font-size: 14px;
+    margin-top: 20px;
+    text-align: center;
+  }
+  .game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.9);
+    color: #4CAF50;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    border: 2px solid #4CAF50;
+  }`;
+
+        const bodyContent = `
+  ${this.getBackButtonHtml()}
+  <div id="score">Score: 0</div>
+  <canvas id="gameContainer" width="400" height="400"></canvas>
+  <div id="controls">Use arrow keys or WASD to move</div>`;
+
+        const scripts = `
+${this.getBackButtonScript()}
+${this.getScoreSavingScript()}
+
+class SnakeGame {
+  constructor() {
+    this.canvas = document.getElementById('gameContainer');
+    this.ctx = this.canvas.getContext('2d');
+    this.gridSize = 20;
+    this.snake = [{x: 10, y: 10}];
+    this.food = this.generateFood();
+    this.direction = 'right';
+    this.score = 0;
+    this.gameOver = false;
+    this.speed = 150;
+    
+    this.bindEvents();
+    this.gameLoop();
+  }
+  
+  generateFood() {
+    let food;
+    do {
+      food = {
+        x: Math.floor(Math.random() * (this.canvas.width / this.gridSize)),
+        y: Math.floor(Math.random() * (this.canvas.height / this.gridSize))
+      };
+    } while (this.snake.some(segment => segment.x === food.x && segment.y === food.y));
+    return food;
+  }
+  
+  bindEvents() {
+    document.addEventListener('keydown', (e) => {
+      if (this.gameOver) return;
+      
+      switch(e.key) {
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+          if (this.direction !== 'down') this.direction = 'up';
+          break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+          if (this.direction !== 'up') this.direction = 'down';
+          break;
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          if (this.direction !== 'right') this.direction = 'left';
+          break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+          if (this.direction !== 'left') this.direction = 'right';
+          break;
+      }
+    });
+  }
+  
+  update() {
+    if (this.gameOver) return;
+    
+    const head = {...this.snake[0]};
+    
+    switch(this.direction) {
+      case 'up': head.y--; break;
+      case 'down': head.y++; break;
+      case 'left': head.x--; break;
+      case 'right': head.x++; break;
+    }
+    
+    // Check wall collision
+    if (head.x < 0 || head.x >= this.canvas.width / this.gridSize ||
+        head.y < 0 || head.y >= this.canvas.height / this.gridSize) {
+      this.endGame();
+      return;
+    }
+    
+    // Check self collision
+    if (this.snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+      this.endGame();
+      return;
+    }
+    
+    this.snake.unshift(head);
+    
+    // Check food collision
+    if (head.x === this.food.x && head.y === this.food.y) {
+      this.score += 10;
+      this.food = this.generateFood();
+      this.speed = Math.max(50, this.speed - 2);
+    } else {
+      this.snake.pop();
+    }
+    
+    document.getElementById('score').textContent = 'Score: ' + this.score;
+  }
+  
+  draw() {
+    this.ctx.fillStyle = '#000';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    // Draw snake
+    this.ctx.fillStyle = '#4CAF50';
+    this.snake.forEach((segment, index) => {
+      if (index === 0) {
+        this.ctx.fillStyle = '#66BB6A';
+      } else {
+        this.ctx.fillStyle = '#4CAF50';
+      }
+      this.ctx.fillRect(
+        segment.x * this.gridSize,
+        segment.y * this.gridSize,
+        this.gridSize - 1,
+        this.gridSize - 1
+      );
+    });
+    
+    // Draw food
+    this.ctx.fillStyle = '#FF5722';
+    this.ctx.fillRect(
+      this.food.x * this.gridSize,
+      this.food.y * this.gridSize,
+      this.gridSize - 1,
+      this.gridSize - 1
+    );
+  }
+  
+  gameLoop() {
+    this.update();
+    this.draw();
+    
+    if (!this.gameOver) {
+      setTimeout(() => this.gameLoop(), this.speed);
+    }
+  }
+  
+  endGame() {
+    this.gameOver = true;
+    saveScore(this.score);
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'game-over';
+    overlay.innerHTML = \`
+      <h2>Game Over!</h2>
+      <p>Final Score: \${this.score}</p>
+      <button class="btn" onclick="game.reset()">Play Again</button>
+    \`;
+    document.body.appendChild(overlay);
+  }
+  
+  reset() {
+    this.snake = [{x: 10, y: 10}];
+    this.food = this.generateFood();
+    this.direction = 'right';
+    this.score = 0;
+    this.gameOver = false;
+    this.speed = 150;
+    
+    const overlay = document.body.querySelector('.game-over');
+    if (overlay) overlay.remove();
+    
+    this.gameLoop();
+  }
+}
+
+const game = new SnakeGame();`;
+
+        return getBasicHtmlTemplate(webview, nonce, 'Snake Game') + `
+<style>
+${styles}
+</style>
+</head>
+<body>
+${bodyContent}
+<script nonce="${nonce}">
+${scripts}
+</script>
+</body>
+</html>`;
+    }
+}
