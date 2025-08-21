@@ -14,53 +14,145 @@ export class GameLauncher {
      * Gets the HTML content for the game launcher hub
      * @param webview The webview instance
      * @param extensionUri The extension URI
+     * @param viewType Optional view type for responsive design
      * @returns HTML string for the game launcher
      */
-    getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string {
+    getHtml(webview: vscode.Webview, extensionUri: vscode.Uri, viewType?: string): string {
         const nonce = getNonce();
         
+        // Determine layout mode
+        const isSidebar = viewType === 'subwaySurfersView';
+        const isBottomPanel = viewType === 'subwaySurfersBottomView';
+        
         const styles = getAllSharedStyles() + `
-  h1 {
-    font-size: 2.5em;
-    margin-bottom: 10px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;500;700&display=swap');
+  
+  body {
+    font-family: 'Fira Mono', monospace;
+    background: #151110;
+    color: #FFFFFF;
   }
+  
+  .container {
+    max-width: ${isSidebar ? '280px' : isBottomPanel ? '800px' : '311px'};
+    margin: 0 auto;
+    padding: ${isSidebar ? '15px' : '20px'};
+    text-align: center;
+  }
+  
+  .logo-container {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .logo {
+    width: ${isSidebar ? '200px' : isBottomPanel ? '350px' : '291px'};
+    height: auto;
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+    transition: all 0.3s ease;
+  }
+  
+  .logo:hover {
+    filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.7));
+    transform: scale(1.02);
+  }
+  
   .subtitle {
-    font-size: 1.2em;
+    font-size: 1em;
     margin-bottom: 40px;
-    opacity: 0.9;
+    opacity: 0.8;
+    font-weight: 400;
   }
+  
   .games-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 20px;
+    display: ${isBottomPanel ? 'grid' : 'flex'};
+    ${isBottomPanel ? 'grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));' : 'flex-direction: column;'}
+    gap: 15px;
     margin-top: 30px;
   }
-  .game-icon {
-    font-size: 3em;
-    margin-bottom: 15px;
-    display: block;
+  
+  .game-card {
+    background: #201E1C;
+    border: none;
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    position: relative;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
   }
+  
+  .game-card:hover {
+    background: #2A2826;
+    transform: translateY(-2px);
+  }
+  
   .game-title {
-    font-size: 1.3em;
-    font-weight: 600;
-    margin-bottom: 8px;
+    font-size: 1.4em;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0;
+    font-family: 'Fira Mono', monospace;
   }
+  
   .game-description {
     font-size: 0.9em;
     opacity: 0.8;
-    line-height: 1.4;
+    line-height: 1.3;
+    color: #DBDFDF;
+    margin-top: 5px;
+    font-family: 'Fira Mono', monospace;
+  }
+  
+  .stats {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid #2A2826;
+  }
+  
+  .stats h3 {
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    color: #DBDFDF;
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: ${isSidebar ? 'repeat(1, 1fr)' : 'repeat(3, 1fr)'};
+    gap: 15px;
+  }
+  
+  .stat-item {
+    text-align: center;
+  }
+  
+  .stat-value {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-bottom: 5px;
+  }
+  
+  .stat-label {
+    font-size: 0.8em;
+    color: #DBDFDF;
+    opacity: 0.8;
   }`;
 
         const bodyContent = `
   <div class="container">
-    <h1>🎮 Game Hub</h1>
+    <div class="logo-container">
+      <img src="${webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'IDEArcade.svg'))}" alt="IDE ARCADE" class="logo" />
+    </div>
     <div class="subtitle">Take a break while your code compiles!</div>
     
     <div class="games-grid">
       ${this.games.map(game => `
-        <div class="game-card" onclick="launchGame('${game.getId()}')">
-          <span class="game-icon">${game.getIcon()}</span>
+        <div class="game-card" data-game-id="${game.getId()}">
           <div class="game-title">${game.getName()}</div>
           <div class="game-description">${game.getDescription()}</div>
         </div>
@@ -89,12 +181,15 @@ export class GameLauncher {
         const scripts = `
   // Game launcher functionality
   function launchGame(gameType) {
+    console.log('launchGame called with:', gameType);
     // Send message to VS Code extension to launch specific game
     const vscode = acquireVsCodeApi();
+    console.log('vscode API acquired:', vscode);
     vscode.postMessage({
       command: 'launchGame',
       game: gameType
     });
+    console.log('Message posted to VS Code');
   }
   
   // Load stats from localStorage
@@ -108,10 +203,25 @@ export class GameLauncher {
     document.getElementById('totalTime').textContent = totalTime + 'm';
   }
   
+  // Add click event listeners to game cards
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, setting up event listeners');
+    const gameCards = document.querySelectorAll('.game-card');
+    gameCards.forEach(card => {
+      console.log('Setting up click listener for:', card);
+      card.addEventListener('click', function() {
+        const gameId = this.getAttribute('data-game-id');
+        console.log('Card clicked, game ID:', gameId);
+        launchGame(gameId);
+      });
+    });
+  });
+  
   // Initialize stats
-  loadStats();`;
+  loadStats();
+  console.log('Game launcher scripts loaded');`;
 
-        return getBasicHtmlTemplate(webview, nonce, 'VS Code Game Hub') + `
+        return getBasicHtmlTemplate(webview, nonce, 'IDE Arcade') + `
 <style>
 ${styles}
 </style>

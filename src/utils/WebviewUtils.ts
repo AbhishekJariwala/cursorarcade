@@ -20,7 +20,7 @@ export function getNonce(): string {
  * @returns CSP string
  */
 export function getCSP(webview: vscode.Webview, nonce: string): string {
-    return `default-src 'none'; img-src ${webview.cspSource} https:; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';`;
+    return `default-src 'none'; img-src ${webview.cspSource} https:; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' 'unsafe-eval';`;
 }
 
 /**

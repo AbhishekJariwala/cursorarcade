@@ -8,108 +8,222 @@ export class Game2048 extends BaseGame {
     getDescription(): string { return "Merge tiles to reach 2048"; }
     getId(): string { return "2048"; }
 
-    getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string {
+    getHtml(webview: vscode.Webview, extensionUri: vscode.Uri, viewType?: string): string {
         const nonce = getNonce();
         
+        // Responsive design variables
+        const isSidebar = this.isSidebarMode(viewType);
+        const isBottomPanel = this.isBottomPanelMode(viewType);
+        
         const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;500;700&display=swap');
+  
   body { 
     margin: 0; 
     padding: 0; 
-    background: #faf8ef; 
-    font-family: -apple-system, Segoe UI, Arial, sans-serif;
+    background: #151110; 
+    font-family: 'Fira Mono', monospace;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
+    color: #FFFFFF;
   }
+  
   .header {
     text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .title {
+    font-size: ${isSidebar ? '2em' : '3em'};
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    letter-spacing: ${isSidebar ? '1px' : '2px'};
+    margin-bottom: 10px;
+  }
+  
+  .subtitle {
+    font-size: 1em;
+    color: #DBDFDF;
+    opacity: 0.8;
     margin-bottom: 20px;
   }
-  .title {
-    font-size: 48px;
-    font-weight: bold;
-    color: #776e65;
-    margin: 0;
-  }
+  
   .scores {
     display: flex;
-    gap: 20px;
-    margin-bottom: 20px;
+    ${isSidebar ? 'flex-direction: column;' : ''}
+    gap: ${isSidebar ? '10px' : '20px'};
+    margin-bottom: 30px;
   }
+  
   .score-box {
-    background: #bbada0;
-    padding: 10px 20px;
-    border-radius: 6px;
-    color: white;
+    background: #201E1C;
+    border: 2px solid #DBDFDF;
+    padding: 15px 25px;
+    border-radius: 8px;
+    color: #FFFFFF;
     text-align: center;
+    min-width: 100px;
   }
+  
   .score-label {
-    font-size: 14px;
+    font-size: 0.8em;
     text-transform: uppercase;
+    color: #DBDFDF;
+    margin-bottom: 5px;
+    letter-spacing: 1px;
   }
+  
   .score-value {
-    font-size: 20px;
-    font-weight: bold;
+    font-size: 1.5em;
+    font-weight: 700;
+    color: #FFFFFF;
   }
+  
   #gameContainer {
-    background: #bbada0;
-    padding: 15px;
-    border-radius: 6px;
+    background: #201E1C;
+    padding: 20px;
+    border-radius: 12px;
+    border: 3px solid #DBDFDF;
     position: relative;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   }
+  
   .grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
-    background: #bbada0;
+    gap: 12px;
+    background: #201E1C;
   }
+  
   .cell {
-    width: 80px;
-    height: 80px;
-    background: #cdc1b4;
-    border-radius: 6px;
+    width: ${isSidebar ? '50px' : '70px'};
+    height: ${isSidebar ? '50px' : '70px'};
+    background: #2A2826;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 32px;
-    font-weight: bold;
-    color: #776e65;
-    transition: all 0.15s ease;
+    font-size: ${isSidebar ? '1.2em' : '1.5em'};
+    font-weight: 700;
+    color: #FFFFFF;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+    font-family: 'Fira Mono', monospace;
   }
-  .tile-2 { background: #eee4da; }
-  .tile-4 { background: #ede0c8; }
-  .tile-8 { background: #f2b179; color: #f9f6f2; }
-  .tile-16 { background: #f59563; color: #f9f6f2; }
-  .tile-32 { background: #f67c5f; color: #f9f6f2; }
-  .tile-64 { background: #f65e3b; color: #f9f6f2; }
-  .tile-128 { background: #edcf72; color: #f9f6f2; font-size: 28px; }
-  .tile-256 { background: #edcc61; color: #f9f6f2; font-size: 28px; }
-  .tile-512 { background: #edc850; color: #f9f6f2; font-size: 28px; }
-  .tile-1024 { background: #edc53f; color: #f9f6f2; font-size: 24px; }
-  .tile-2048 { background: #edc22e; color: #f9f6f2; font-size: 24px; }
+  
+  .cell:hover {
+    border-color: #DBDFDF;
+    transform: scale(1.05);
+  }
+  
+  .tile-2 { background: #4A90E2; color: #FFFFFF; }
+  .tile-4 { background: #50C878; color: #FFFFFF; }
+  .tile-8 { background: #FF6B6B; color: #FFFFFF; }
+  .tile-16 { background: #FFD93D; color: #151110; }
+  .tile-32 { background: #FF8C42; color: #FFFFFF; }
+  .tile-64 { background: #9B59B6; color: #FFFFFF; }
+  .tile-128 { background: #E74C3C; color: #FFFFFF; font-size: 1.3em; }
+  .tile-256 { background: #F39C12; color: #FFFFFF; font-size: 1.3em; }
+  .tile-512 { background: #E67E22; color: #FFFFFF; font-size: 1.3em; }
+  .tile-1024 { background: #D35400; color: #FFFFFF; font-size: 1.1em; }
+  .tile-2048 { background: #C0392B; color: #FFFFFF; font-size: 1.1em; }
+  
   .controls {
-    margin-top: 20px;
+    margin-top: 30px;
     text-align: center;
-    color: #776e65;
+    color: #DBDFDF;
+    font-size: 0.9em;
   }
+  
   .game-over {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(238, 228, 218, 0.95);
-    padding: 30px;
-    border-radius: 10px;
+    background: rgba(20, 30, 16, 0.95);
+    color: #FFFFFF;
+    padding: 40px;
+    border-radius: 12px;
     text-align: center;
-    border: 2px solid #776e65;
+    border: 3px solid #DBDFDF;
+    font-family: 'Fira Mono', monospace;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+  }
+  
+  .game-over h2 {
+    color: #FF6B6B;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+  }
+  
+  .game-over button {
+    background: #4A90E2;
+    color: #FFFFFF;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-family: 'Fira Mono', monospace;
+    font-size: 1em;
+    cursor: pointer;
+    margin: 10px;
+    transition: all 0.2s ease;
+  }
+  
+  .game-over button:hover {
+    background: #357ABD;
+    transform: translateY(-2px);
+  }
+  
+  .play-again-btn {
+    background: #4A90E2;
+    color: #FFFFFF;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-family: 'Fira Mono', monospace;
+    font-size: 1em;
+    cursor: pointer;
+    margin: 10px;
+    transition: all 0.2s ease;
+  }
+  
+  .play-again-btn:hover {
+    background: #357ABD;
+    transform: translateY(-2px);
+  }
+  
+  .back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: #201E1C;
+    color: #FFFFFF;
+    border: 2px solid #DBDFDF;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'Fira Mono', monospace;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 1000;
+  }
+  
+  .back-btn:hover {
+    background: #2A2826;
+    border-color: #FFFFFF;
+    transform: translateY(-2px);
   }`;
 
         const bodyContent = `
   ${this.getBackButtonHtml()}
   <div class="header">
     <h1 class="title">2048</h1>
+    <div class="subtitle">Merge tiles to reach 2048!</div>
     <div class="scores">
       <div class="score-box">
         <div class="score-label">Score</div>
@@ -342,9 +456,15 @@ class Game2048 {
     overlay.innerHTML = \`
       <h2>Game Over!</h2>
       <p>Final Score: \${this.score}</p>
-      <button class="btn" onclick="game2048.reset()">Play Again</button>
+      <button class="play-again-btn" id="playAgainBtn">Play Again</button>
     \`;
     document.getElementById('gameContainer').appendChild(overlay);
+    
+    // Add event listener to the play again button
+    const playAgainBtn = overlay.querySelector('#playAgainBtn');
+    if (playAgainBtn) {
+      playAgainBtn.addEventListener('click', () => this.reset());
+    }
   }
 
   win() {
@@ -359,9 +479,15 @@ class Game2048 {
       <h2>🎉 You Won! 🎉</h2>
       <p>You reached 2048!</p>
       <p>Final Score: \${this.score}</p>
-      <button class="btn" onclick="game2048.reset()">Play Again</button>
+      <button class="play-again-btn" id="playAgainBtnWin">Play Again</button>
     \`;
     document.getElementById('gameContainer').appendChild(overlay);
+    
+    // Add event listener to the play again button
+    const playAgainBtn = overlay.querySelector('#playAgainBtnWin');
+    if (playAgainBtn) {
+      playAgainBtn.addEventListener('click', () => this.reset());
+    }
   }
 
   reset() {

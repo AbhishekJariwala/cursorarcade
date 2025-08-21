@@ -8,34 +8,46 @@ export class SubwaySurfersGame extends BaseGame {
     getDescription(): string { return "Endless runner with obstacles and coins"; }
     getId(): string { return "subwaySurfers"; }
 
-    getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string {
+    getHtml(webview: vscode.Webview, extensionUri: vscode.Uri, viewType?: string): string {
         const nonce = getNonce();
         
+        // Responsive design variables
+        const isSidebar = this.isSidebarMode(viewType);
+        const isBottomPanel = this.isBottomPanelMode(viewType);
+        
         const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;500;700&display=swap');
+  
   :root { --lane-count: 3; }
+  
   body { 
     margin: 0; 
     padding: 0; 
-    background: #0b1726; 
-    font-family: -apple-system, Segoe UI, Arial, sans-serif; 
+    background: #151110; 
+    font-family: 'Fira Mono', monospace; 
+    color: #FFFFFF;
   }
+  
   #gameContainer {
     width: 100%; 
-    height: 100vh; 
-    max-height: 600px; 
+    height: ${isSidebar ? '400px' : '100vh'}; 
+    max-height: ${isSidebar ? '400px' : '600px'}; 
     position: relative; 
     overflow: hidden; 
     margin: 0 auto;
     background:
-      linear-gradient(to right, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 2px, transparent 2px) 33.33% 0/33.33% 100%,
-      linear-gradient(to right, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 2px, transparent 2px) 66.66% 0/33.33% 100%,
-      radial-gradient(circle at 50% -20%, #4db6ff, #0b1726 55%);
+      linear-gradient(to right, rgba(74, 144, 226, 0.15) 0, rgba(74, 144, 226, 0.15) 2px, transparent 2px) 33.33% 0/33.33% 100%,
+      linear-gradient(to right, rgba(74, 144, 226, 0.15) 0, rgba(74, 144, 226, 0.15) 2px, transparent 2px) 66.66% 0/33.33% 100%,
+      radial-gradient(circle at 50% -20%, #4A90E2, #151110 55%);
     background-repeat: no-repeat;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
   }
+  
   #player { 
     width: 44px; 
     height: 52px; 
-    background: linear-gradient(#ffd54f, #f57f17); 
+    background: linear-gradient(#FFD93D, #F39C12); 
     border-radius: 12px; 
     position: absolute; 
     bottom: 68px; 
@@ -44,85 +56,155 @@ export class SubwaySurfersGame extends BaseGame {
     transition: left 0.15s ease; 
     z-index: 10; 
     box-shadow: 0 6px 12px rgba(0,0,0,0.35); 
+    border: 2px solid #FFFFFF;
   }
+  
   .obstacle { 
     width: 46px; 
     height: 56px; 
-    background: linear-gradient(#455a64, #263238); 
+    background: linear-gradient(#FF6B6B, #E74C3C); 
     border-radius: 6px; 
     position: absolute; 
     box-shadow: 0 4px 8px rgba(0,0,0,0.35); 
+    border: 2px solid #FFFFFF;
   }
+  
   .train { 
     width: 64px; 
     height: 120px; 
-    background: linear-gradient(#78909c, #37474f); 
+    background: linear-gradient(#9B59B6, #8E44AD); 
     border-radius: 8px; 
     position: absolute; 
     box-shadow: 0 8px 16px rgba(0,0,0,0.45); 
+    border: 2px solid #FFFFFF;
   }
+  
   .coin { 
     width: 26px; 
     height: 26px; 
-    background: #ffeb3b; 
+    background: #FFD93D; 
     border-radius: 50%; 
     position: absolute; 
-    border: 3px solid #ffa000; 
+    border: 3px solid #F39C12; 
     box-shadow: 0 2px 6px rgba(0,0,0,0.35); 
     animation: spin 1s linear infinite; 
   }
+  
   @keyframes spin { 
     from { transform: translateX(-50%) rotateY(0); } 
     to { transform: translateX(-50%) rotateY(360deg); } 
   }
+  
   #score { 
     position: absolute; 
-    top: 10px; 
-    left: 10px; 
-    color: #fff; 
+    top: 20px; 
+    left: 20px; 
+    color: #FFFFFF; 
     font-weight: 700; 
     z-index: 100; 
     text-shadow: 2px 2px 4px rgba(0,0,0,0.6); 
-    font-size: 16px; 
+    font-size: 1.2em; 
+    background: #201E1C;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 2px solid #4A90E2;
+    font-family: 'Fira Mono', monospace;
   }
+  
   #controls { 
     position: absolute; 
-    bottom: 10px; 
+    bottom: 20px; 
     left: 50%; 
     transform: translateX(-50%); 
-    color: #fff; 
+    color: #FFFFFF; 
     text-align: center; 
-    font-size: 12px; 
+    font-size: 0.9em; 
     z-index: 100; 
-    background: rgba(0,0,0,0.35); 
-    padding: 8px 10px; 
+    background: #201E1C; 
+    padding: 12px 20px; 
     border-radius: 8px; 
+    border: 2px solid #DBDFDF;
+    font-family: 'Fira Mono', monospace;
   }
-  .game-over { 
-    position: absolute; 
-    top: 50%; 
-    left: 50%; 
-    transform: translate(-50%, -50%); 
-    background: rgba(0,0,0,0.85); 
-    color: #fff; 
-    padding: 20px; 
-    border-radius: 12px; 
-    text-align: center; 
-    z-index: 1000; 
-    border: 2px solid #ffd54f; 
+  
+  .game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(20, 30, 16, 0.95);
+    color: #FFFFFF;
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    border: 3px solid #4A90E2;
+    font-family: 'Fira Mono', monospace;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+    z-index: 1000;
   }
-  .btn { 
-    background: #ffd54f; 
-    color: #333; 
-    border: none; 
-    padding: 8px 16px; 
-    border-radius: 6px; 
-    font-size: 14px; 
-    cursor: pointer; 
-    margin-top: 10px; 
+  
+  .game-over h2 {
+    color: #FF6B6B;
+    margin-bottom: 20px;
+    font-size: 1.8em;
   }
-  .btn:hover { 
-    background: #ffb300; 
+  
+  .game-over button {
+    background: #4A90E2;
+    color: #FFFFFF;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-family: 'Fira Mono', monospace;
+    font-size: 1em;
+    cursor: pointer;
+    margin: 10px;
+    transition: all 0.2s ease;
+  }
+  
+  .game-over button:hover {
+    background: #357ABD;
+    transform: translateY(-2px);
+  }
+  
+  .play-again-btn {
+    background: #4A90E2;
+    color: #FFFFFF;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-family: 'Fira Mono', monospace;
+    font-size: 1em;
+    cursor: pointer;
+    margin: 10px;
+    transition: all 0.2s ease;
+  }
+  
+  .play-again-btn:hover {
+    background: #357ABD;
+    transform: translateY(-2px);
+  }
+  
+  .back-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #201E1C;
+    color: #FFFFFF;
+    border: 2px solid #DBDFDF;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'Fira Mono', monospace;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 1000;
+  }
+  
+  .back-btn:hover {
+    background: #2A2826;
+    border-color: #FFFFFF;
+    transform: translateY(-2px);
   }`;
 
         const bodyContent = `
@@ -288,7 +370,7 @@ class SubwaySurfersGame {
     const p = document.createElement('p');
     p.textContent = 'Final Score: ' + this.score;
     const btn = document.createElement('button');
-    btn.className = 'btn';
+    btn.className = 'play-again-btn';
     btn.textContent = 'Play Again';
     btn.addEventListener('click', () => this.reset());
     overlay.appendChild(title); overlay.appendChild(p); overlay.appendChild(btn);

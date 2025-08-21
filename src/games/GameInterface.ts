@@ -8,9 +8,10 @@ export interface Game {
      * Gets the HTML content for the game
      * @param webview The webview instance
      * @param extensionUri The extension URI
+     * @param viewType Optional view type for responsive design
      * @returns HTML string for the game
      */
-    getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string;
+    getHtml(webview: vscode.Webview, extensionUri: vscode.Uri, viewType?: string): string;
     
     /**
      * Gets the display name of the game
@@ -45,7 +46,25 @@ export abstract class BaseGame implements Game {
     abstract getIcon(): string;
     abstract getDescription(): string;
     abstract getId(): string;
-    abstract getHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string;
+    abstract getHtml(webview: vscode.Webview, extensionUri: vscode.Uri, viewType?: string): string;
+    
+    /**
+     * Determines if the game is in sidebar mode (narrow layout)
+     * @param viewType The view type identifier
+     * @returns True if in sidebar mode, false for bottom panel or undefined
+     */
+    protected isSidebarMode(viewType?: string): boolean {
+        return viewType === 'subwaySurfersView';
+    }
+    
+    /**
+     * Determines if the game is in bottom panel mode (wide layout)
+     * @param viewType The view type identifier
+     * @returns True if in bottom panel mode, false for sidebar or undefined
+     */
+    protected isBottomPanelMode(viewType?: string): boolean {
+        return viewType === 'subwaySurfersBottomView';
+    }
     
     /**
      * Gets the common game HTML template
@@ -87,7 +106,7 @@ ${scripts}
      * @returns Back button HTML string
      */
     protected getBackButtonHtml(): string {
-        return `<button class="back-btn" onclick="goBack()">← Back</button>`;
+        return `<button class="back-btn" id="backButton" onclick="window.goBack && window.goBack()">← Back</button>`;
     }
     
     /**
@@ -97,11 +116,74 @@ ${scripts}
     protected getBackButtonScript(): string {
         return `
 function goBack() {
-    const vscode = acquireVsCodeApi();
-    vscode.postMessage({
-        command: 'goBack'
-    });
-}`;
+    console.log('goBack function called');
+    try {
+        const vscode = acquireVsCodeApi();
+        console.log('VS Code API acquired:', vscode);
+        vscode.postMessage({
+            command: 'goBack'
+        });
+        console.log('goBack message sent to VS Code');
+    } catch (error) {
+        console.error('Error in goBack function:', error);
+    }
+}
+
+// Make goBack globally available as fallback
+window.goBack = goBack;
+
+// Try to set up back button immediately
+(function() {
+    console.log('Immediate setup attempt');
+    const setupBackButton = function() {
+        const backButton = document.getElementById('backButton');
+        if (backButton) {
+            console.log('Back button found in immediate setup');
+            backButton.addEventListener('click', function(event) {
+                console.log('Back button clicked (immediate setup)!');
+                event.preventDefault();
+                goBack();
+            });
+            return true;
+        }
+        return false;
+    };
+    
+    // Try immediate setup
+    if (!setupBackButton()) {
+        // If that fails, try with a tiny delay
+        setTimeout(setupBackButton, 10);
+    }
+})();
+
+// Set up back button event listener
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, setting up back button listener');
+    const backButton = document.getElementById('backButton');
+    if (backButton) {
+        console.log('Back button found, adding click listener');
+        backButton.addEventListener('click', function(event) {
+            console.log('Back button clicked!');
+            event.preventDefault();
+            goBack();
+        });
+    } else {
+        console.error('Back button not found!');
+    }
+});
+
+// Also set up listener after a short delay in case DOM isn't ready
+setTimeout(function() {
+    const backButton = document.getElementById('backButton');
+    if (backButton && !backButton.onclick) {
+        console.log('Setting up delayed back button listener');
+        backButton.addEventListener('click', function(event) {
+            console.log('Back button clicked (delayed setup)!');
+            event.preventDefault();
+            goBack();
+        });
+    }
+}, 100);`;
     }
     
     /**
