@@ -29,6 +29,7 @@ export class Game2048 extends BaseGame {
     justify-content: center;
     min-height: 100vh;
     color: #FFFFFF;
+    outline: none;
   }
   
   .header {
@@ -91,19 +92,32 @@ export class Game2048 extends BaseGame {
     border: 3px solid #DBDFDF;
     position: relative;
     box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    z-index: 1;
   }
   
   .grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
+    position: relative;
+    width: ${isSidebar ? '232px' : '322px'};
+    height: ${isSidebar ? '232px' : '322px'};
     background: #201E1C;
+    border-radius: 8px;
+    padding: 12px;
+    z-index: 1;
   }
   
-  .cell {
+  .grid-cell {
+    position: absolute;
     width: ${isSidebar ? '50px' : '70px'};
     height: ${isSidebar ? '50px' : '70px'};
     background: #2A2826;
+    border-radius: 8px;
+    border: 2px solid transparent;
+  }
+  
+  .tile {
+    position: absolute;
+    width: ${isSidebar ? '50px' : '70px'};
+    height: ${isSidebar ? '50px' : '70px'};
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -111,14 +125,44 @@ export class Game2048 extends BaseGame {
     font-size: ${isSidebar ? '1.2em' : '1.5em'};
     font-weight: 700;
     color: #FFFFFF;
-    transition: all 0.2s ease;
-    border: 2px solid transparent;
     font-family: 'Fira Mono', monospace;
+    transition: all 0.3s ease-in-out;
+    z-index: 10;
+    border: 2px solid transparent;
   }
   
-  .cell:hover {
-    border-color: #DBDFDF;
-    transform: scale(1.05);
+  .tile.new-tile {
+    animation: tileSpawn 0.2s ease-in-out;
+  }
+  
+  .tile.merged-tile {
+    animation: tileMerge 0.2s ease-in-out;
+  }
+  
+  @keyframes tileSpawn {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes tileMerge {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+    }
   }
   
   .tile-2 { background: #DBDFDF; color: #151110; }
@@ -153,6 +197,7 @@ export class Game2048 extends BaseGame {
     border: 3px solid #DBDFDF;
     font-family: 'Fira Mono', monospace;
     box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+    z-index: 1000;
   }
   
   .game-over h2 {
@@ -242,7 +287,10 @@ export class Game2048 extends BaseGame {
     <div class="grid" id="grid"></div>
   </div>
   
-  <div class="controls">Use arrow keys or WASD to move tiles</div>`;
+  <div class="controls">Use arrow keys or WASD to move tiles</div>
+  <div style="position: absolute; top: -9999px; left: -9999px;">
+    <input type="text" id="keyboardFocus" tabindex="0" autocomplete="off" />
+  </div>`;
 
         const scripts = `
 ${this.getBackButtonScript()}
@@ -254,15 +302,128 @@ class Game2048 {
     this.score = 0;
     this.best = parseInt(localStorage.getItem('2048-best') || '0');
     this.gameOver = false;
-    
-    this.init();
+    this.animating = false;
+    this.tileIdCounter = 0;
+    this.tiles = new Map(); // Map of tile id -> {value, row, col, element, isNew, isMerged}
+    this.cellSize = ${isSidebar ? '50' : '70'};
+    this.gap = 12;
+
     this.bindEvents();
+    this.initGrid();
+    this.init();
     this.updateDisplay();
   }
   
   init() {
     this.addRandomTile();
     this.addRandomTile();
+  }
+  
+  initGrid() {
+    const gridElement = document.getElementById('grid');
+    gridElement.innerHTML = '';
+    
+    // Create background grid cells
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+        const gridCell = document.createElement('div');
+        gridCell.className = 'grid-cell';
+        gridCell.style.left = (j * (this.cellSize + this.gap)) + 'px';
+        gridCell.style.top = (i * (this.cellSize + this.gap)) + 'px';
+        gridElement.appendChild(gridCell);
+      }
+    }
+  }
+  
+  getTilePosition(row, col) {
+    return {
+      x: col * (this.cellSize + this.gap),
+      y: row * (this.cellSize + this.gap)
+    };
+  }
+  
+  createTile(value, row, col, isNew = false) {
+    const tileId = this.tileIdCounter++;
+    const position = this.getTilePosition(row, col);
+    
+    const tileElement = document.createElement('div');
+    tileElement.className = 'tile tile-' + value;
+    tileElement.textContent = value;
+    tileElement.style.left = position.x + 'px';
+    tileElement.style.top = position.y + 'px';
+    tileElement.dataset.tileId = tileId.toString();
+    
+    if (isNew) {
+      tileElement.classList.add('new-tile');
+      // Remove the animation class after animation completes
+      setTimeout(() => {
+        tileElement.classList.remove('new-tile');
+      }, 200);
+    }
+    
+    document.getElementById('grid').appendChild(tileElement);
+    
+    this.tiles.set(tileId, {
+      value: value,
+      row: row,
+      col: col,
+      element: tileElement,
+      isNew: isNew,
+      isMerged: false
+    });
+    
+    return tileId;
+  }
+  
+  moveTile(tileId, newRow, newCol) {
+    const tile = this.tiles.get(tileId);
+    if (!tile) return;
+    
+    const newPosition = this.getTilePosition(newRow, newCol);
+    tile.element.style.left = newPosition.x + 'px';
+    tile.element.style.top = newPosition.y + 'px';
+    
+    tile.row = newRow;
+    tile.col = newCol;
+  }
+  
+  mergeTiles(tile1Id, tile2Id, newValue, newRow, newCol) {
+    const tile1 = this.tiles.get(tile1Id);
+    const tile2 = this.tiles.get(tile2Id);
+    
+    if (!tile1 || !tile2) return null;
+    
+    // Move both tiles to the merge position
+    this.moveTile(tile1Id, newRow, newCol);
+    this.moveTile(tile2Id, newRow, newCol);
+    
+    // Create new merged tile
+    const newTileId = this.createTile(newValue, newRow, newCol, false);
+    const newTile = this.tiles.get(newTileId);
+    newTile.element.classList.add('merged-tile');
+    
+    // Remove the animation class after animation completes
+    setTimeout(() => {
+      newTile.element.classList.remove('merged-tile');
+    }, 200);
+    
+    // Remove old tiles after animation
+    setTimeout(() => {
+      tile1.element.remove();
+      tile2.element.remove();
+      this.tiles.delete(tile1Id);
+      this.tiles.delete(tile2Id);
+    }, 300);
+    
+    return newTileId;
+  }
+  
+  clearAllTiles() {
+    this.tiles.forEach(tile => {
+      tile.element.remove();
+    });
+    this.tiles.clear();
+    this.tileIdCounter = 0;
   }
   
   addRandomTile() {
@@ -277,63 +438,276 @@ class Game2048 {
     
     if (emptyCells.length > 0) {
       const {i, j} = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-      this.grid[i][j] = Math.random() < 0.9 ? 2 : 4;
+      const value = Math.random() < 0.9 ? 2 : 4;
+      this.grid[i][j] = value;
+      this.createTile(value, i, j, true);
     }
   }
   
   bindEvents() {
+    // Use a hidden input to capture keyboard events properly
+    const keyboardInput = document.getElementById('keyboardFocus');
+    if (keyboardInput) {
+      keyboardInput.focus();
+    }
+    
+    // Global keyboard event listener
     document.addEventListener('keydown', (e) => {
-      if (this.gameOver) return;
+      if (this.gameOver || this.animating) return;
       
       let moved = false;
+      
       switch(e.key) {
         case 'ArrowUp':
         case 'w':
         case 'W':
+          e.preventDefault();
+          e.stopPropagation();
           moved = this.moveUp();
           break;
         case 'ArrowDown':
         case 's':
         case 'S':
+          e.preventDefault();
+          e.stopPropagation();
           moved = this.moveDown();
           break;
         case 'ArrowLeft':
         case 'a':
         case 'A':
+          e.preventDefault();
+          e.stopPropagation();
           moved = this.moveLeft();
           break;
         case 'ArrowRight':
         case 'd':
         case 'D':
+          e.preventDefault();
+          e.stopPropagation();
           moved = this.moveRight();
           break;
       }
       
       if (moved) {
-        this.addRandomTile();
-        this.updateDisplay();
-        
-        if (this.checkGameOver()) {
-          this.endGame();
-        }
+        setTimeout(() => {
+          this.addRandomTile();
+          this.updateDisplay();
+          
+          if (this.checkGameOver()) {
+            this.endGame();
+          }
+        }, 100); // Faster new tile appearance
       }
     });
+    
+    // Ensure the hidden input stays focused for keyboard input
+    document.addEventListener('click', () => {
+      if (keyboardInput) {
+        keyboardInput.focus();
+      }
+    });
+    
+    // Prevent focus loss and keep keyboard input focused
+    document.addEventListener('blur', () => {
+      setTimeout(() => {
+        if (keyboardInput) {
+          keyboardInput.focus();
+        }
+      }, 0);
+    });
+    
+    // Also listen for focus events on the hidden input
+    if (keyboardInput) {
+      keyboardInput.addEventListener('focus', () => {
+        // Keyboard input focused
+      });
+      
+      keyboardInput.addEventListener('blur', () => {
+        setTimeout(() => keyboardInput.focus(), 0);
+      });
+    }
   }
   
   moveLeft() {
-    return this.move(row => row);
+    if (this.animating) return false;
+    
+    this.animating = true;
+    let moved = false;
+    const movements = [];
+    const merges = [];
+    
+    for (let row = 0; row < 4; row++) {
+      const originalRow = [...this.grid[row]];
+      const tiles = [];
+      
+      // Get tiles in this row
+      for (let col = 0; col < 4; col++) {
+        if (this.grid[row][col] !== 0) {
+          const tileId = this.findTileAt(row, col);
+          if (tileId !== null) {
+            tiles.push({ id: tileId, value: this.grid[row][col], origCol: col });
+          }
+        }
+      }
+      
+      // Clear the row in the grid
+      this.grid[row] = [0, 0, 0, 0];
+      
+      // Process movement and merging
+      let newCol = 0;
+      let i = 0;
+      
+      while (i < tiles.length) {
+        if (i < tiles.length - 1 && tiles[i].value === tiles[i + 1].value) {
+          // Merge tiles
+          const mergedValue = tiles[i].value * 2;
+          this.grid[row][newCol] = mergedValue;
+          
+          merges.push({
+            tile1: tiles[i].id,
+            tile2: tiles[i + 1].id,
+            newValue: mergedValue,
+            newRow: row,
+            newCol: newCol
+          });
+          
+          this.score += mergedValue;
+          i += 2; // Skip both merged tiles
+        } else {
+          // Move single tile
+          this.grid[row][newCol] = tiles[i].value;
+          
+          if (tiles[i].origCol !== newCol) {
+            movements.push({
+              tileId: tiles[i].id,
+              newRow: row,
+              newCol: newCol
+            });
+          }
+          
+          i++;
+        }
+        newCol++;
+      }
+      
+      if (JSON.stringify(originalRow) !== JSON.stringify(this.grid[row])) {
+        moved = true;
+      }
+    }
+    
+    // Execute animations
+    movements.forEach(move => {
+      this.moveTile(move.tileId, move.newRow, move.newCol);
+    });
+    
+    merges.forEach(merge => {
+      this.mergeTiles(merge.tile1, merge.tile2, merge.newValue, merge.newRow, merge.newCol);
+    });
+    
+    // End animation after delay
+    setTimeout(() => {
+      this.animating = false;
+    }, 350);
+    
+    return moved;
+  }
+  
+  findTileAt(row, col) {
+    for (let [tileId, tile] of this.tiles) {
+      if (tile.row === row && tile.col === col) {
+        return tileId;
+      }
+    }
+    return null;
   }
   
   moveRight() {
-    return this.move(row => row.reverse());
+    if (this.animating) return false;
+    this.animating = true;
+    
+    // For now, use the sync method and then sync tiles
+    let moved = false;
+    for (let i = 0; i < 4; i++) {
+      const originalRow = [...this.grid[i]];
+      const reversedRow = [...this.grid[i]].reverse();
+      const mergedRow = this.mergeLine(reversedRow);
+      
+      while (mergedRow.length < 4) mergedRow.push(0);
+      const newRow = mergedRow.reverse();
+      
+      this.grid[i] = newRow;
+      if (JSON.stringify(originalRow) !== JSON.stringify(newRow)) {
+        moved = true;
+      }
+    }
+    
+    if (moved) {
+      this.syncTilesWithGrid();
+    }
+    
+    setTimeout(() => {
+      this.animating = false;
+    }, 350);
+    
+    return moved;
   }
   
   moveUp() {
-    return this.move(col => this.getColumn(col));
+    if (this.animating) return false;
+    this.animating = true;
+    
+    let moved = false;
+    for (let j = 0; j < 4; j++) {
+      const originalCol = this.getColumn(j);
+      const newCol = this.mergeLine([...originalCol]);
+      
+      while (newCol.length < 4) newCol.push(0);
+      
+      this.setColumn(j, newCol);
+      if (JSON.stringify(originalCol) !== JSON.stringify(newCol)) {
+        moved = true;
+      }
+    }
+    
+    if (moved) {
+      this.syncTilesWithGrid();
+    }
+    
+    setTimeout(() => {
+      this.animating = false;
+    }, 350);
+    
+    return moved;
   }
   
   moveDown() {
-    return this.move(col => this.getColumn(col).reverse());
+    if (this.animating) return false;
+    this.animating = true;
+    
+    let moved = false;
+    for (let j = 0; j < 4; j++) {
+      const originalCol = this.getColumn(j);
+      const reversedCol = [...originalCol].reverse();
+      const mergedCol = this.mergeLine(reversedCol);
+      
+      while (mergedCol.length < 4) mergedCol.push(0);
+      const newCol = mergedCol.reverse();
+      
+      this.setColumn(j, newCol);
+      if (JSON.stringify(originalCol) !== JSON.stringify(newCol)) {
+        moved = true;
+      }
+    }
+    
+    if (moved) {
+      this.syncTilesWithGrid();
+    }
+    
+    setTimeout(() => {
+      this.animating = false;
+    }, 350);
+    
+    return moved;
   }
   
   getColumn(colIndex) {
@@ -346,71 +720,30 @@ class Game2048 {
     }
   }
   
-  move(getLine) {
-    let moved = false;
-    
-    for (let i = 0; i < 4; i++) {
-      let line = getLine(i);
-      const originalLine = [...line];
-      
-      // Merge tiles
-      line = this.mergeLine(line);
-      
-      // Fill with zeros
-      while (line.length < 4) {
-        line.push(0);
-      }
-      
-      // Check if anything moved
-      if (JSON.stringify(originalLine) !== JSON.stringify(line)) {
-        moved = true;
-      }
-      
-      // Update the grid
-      if (getLine === this.getColumn) {
-        this.setColumn(i, line);
-      } else {
-        this.grid[i] = line;
-      }
-    }
-    
-    return moved;
-  }
-  
   mergeLine(line) {
-    // Remove zeros
-    line = line.filter(tile => tile !== 0);
+    // Remove zeros first
+    const filtered = line.filter(tile => tile !== 0);
+    const merged = [];
     
-    // Merge adjacent tiles
-    for (let i = 0; i < line.length - 1; i++) {
-      if (line[i] === line[i + 1]) {
-        line[i] *= 2;
-        this.score += line[i];
-        line.splice(i + 1, 1);
+    let i = 0;
+    while (i < filtered.length) {
+      if (i < filtered.length - 1 && filtered[i] === filtered[i + 1]) {
+        // Merge tiles
+        const mergedValue = filtered[i] * 2;
+        merged.push(mergedValue);
+        this.score += mergedValue;
+        i += 2; // Skip both merged tiles
+      } else {
+        // No merge, just add the tile
+        merged.push(filtered[i]);
+        i++;
       }
     }
     
-    return line;
+    return merged;
   }
   
   updateDisplay() {
-    const gridElement = document.getElementById('grid');
-    gridElement.innerHTML = '';
-    
-    for (let i = 0; i < 4; i++) {
-      for (let j = 0; j < 4; j++) {
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        
-        if (this.grid[i][j] !== 0) {
-          cell.textContent = this.grid[i][j];
-          cell.classList.add('tile-' + this.grid[i][j]);
-        }
-        
-        gridElement.appendChild(cell);
-      }
-    }
-    
     document.getElementById('score').textContent = this.score;
     document.getElementById('best').textContent = Math.max(this.best, this.score);
     
@@ -420,6 +753,20 @@ class Game2048 {
         if (this.grid[i][j] === 2048) {
           this.win();
           return;
+        }
+      }
+    }
+  }
+  
+  syncTilesWithGrid() {
+    // Clear all existing tiles
+    this.clearAllTiles();
+    
+    // Create tiles based on current grid state
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+        if (this.grid[i][j] !== 0) {
+          this.createTile(this.grid[i][j], i, j, false);
         }
       }
     }
@@ -455,11 +802,9 @@ class Game2048 {
     
     const overlay = document.createElement('div');
     overlay.className = 'game-over';
-    overlay.innerHTML = \`
-      <h2>Game Over!</h2>
-      <p>Final Score: \${this.score}</p>
-      <button class="play-again-btn" id="playAgainBtn">Play Again</button>
-    \`;
+    overlay.innerHTML = '<h2>Game Over!</h2>' +
+      '<p>Final Score: ' + this.score + '</p>' +
+      '<button class="play-again-btn" id="playAgainBtn">Play Again</button>';
     document.getElementById('gameContainer').appendChild(overlay);
     
     // Add event listener to the play again button
@@ -470,25 +815,35 @@ class Game2048 {
   }
 
   win() {
-    this.gameOver = true;
+    // Don't end the game, just show a win message
     this.best = Math.max(this.best, this.score);
-    localStorage.setItem('2048-best', this.best.toString());
+    localStorage.setItem('2048-best', this.score.toString());
     saveScore(this.score);
     
-    const overlay = document.createElement('div');
-    overlay.className = 'game-over';
-    overlay.innerHTML = \`
-      <h2>🎉 You Won! 🎉</h2>
-      <p>You reached 2048!</p>
-      <p>Final Score: \${this.score}</p>
-      <button class="play-again-btn" id="playAgainBtnWin">Play Again</button>
-    \`;
-    document.getElementById('gameContainer').appendChild(overlay);
-    
-    // Add event listener to the play again button
-    const playAgainBtn = overlay.querySelector('#playAgainBtnWin');
-    if (playAgainBtn) {
-      playAgainBtn.addEventListener('click', () => this.reset());
+    // Check if there's already a win overlay
+    let overlay = document.querySelector('.game-over');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'game-over';
+      overlay.innerHTML = '<h2>🎉 You Won! 🎉</h2>' +
+        '<p>You reached 2048!</p>' +
+        '<p>Keep playing to get a higher score!</p>' +
+        '<button class="play-again-btn" id="continueBtn">Continue Playing</button>' +
+        '<button class="play-again-btn" id="playAgainBtnWin">New Game</button>';
+      document.getElementById('gameContainer').appendChild(overlay);
+      
+      // Add event listeners
+      const continueBtn = overlay.querySelector('#continueBtn');
+      if (continueBtn) {
+        continueBtn.addEventListener('click', () => {
+          overlay.remove();
+        });
+      }
+      
+      const playAgainBtn = overlay.querySelector('#playAgainBtnWin');
+      if (playAgainBtn) {
+        playAgainBtn.addEventListener('click', () => this.reset());
+      }
     }
   }
 
@@ -496,10 +851,13 @@ class Game2048 {
     this.grid = Array(4).fill().map(() => Array(4).fill(0));
     this.score = 0;
     this.gameOver = false;
+    this.animating = false;
     
     const overlay = document.getElementById('gameContainer').querySelector('.game-over');
     if (overlay) overlay.remove();
     
+    this.clearAllTiles();
+    this.initGrid();
     this.init();
     this.updateDisplay();
   }

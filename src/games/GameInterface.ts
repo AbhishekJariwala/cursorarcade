@@ -54,7 +54,7 @@ export abstract class BaseGame implements Game {
      * @returns True if in sidebar mode, false for bottom panel or undefined
      */
     protected isSidebarMode(viewType?: string): boolean {
-        return viewType === 'subwaySurfersView';
+        return viewType === 'ideArcadeView';
     }
     
     /**
@@ -63,7 +63,7 @@ export abstract class BaseGame implements Game {
      * @returns True if in bottom panel mode, false for sidebar or undefined
      */
     protected isBottomPanelMode(viewType?: string): boolean {
-        return viewType === 'subwaySurfersBottomView';
+        return viewType === 'ideArcadeBottomView';
     }
     
     /**
@@ -116,16 +116,13 @@ ${scripts}
     protected getBackButtonScript(): string {
         return `
 function goBack() {
-    console.log('goBack function called');
     try {
         const vscode = acquireVsCodeApi();
-        console.log('VS Code API acquired:', vscode);
         vscode.postMessage({
             command: 'goBack'
         });
-        console.log('goBack message sent to VS Code');
     } catch (error) {
-        console.error('Error in goBack function:', error);
+        // Error handling
     }
 }
 
@@ -134,13 +131,10 @@ window.goBack = goBack;
 
 // Try to set up back button immediately
 (function() {
-    console.log('Immediate setup attempt');
     const setupBackButton = function() {
         const backButton = document.getElementById('backButton');
         if (backButton) {
-            console.log('Back button found in immediate setup');
             backButton.addEventListener('click', function(event) {
-                console.log('Back button clicked (immediate setup)!');
                 event.preventDefault();
                 goBack();
             });
@@ -148,42 +142,21 @@ window.goBack = goBack;
         }
         return false;
     };
-    
+
     // Try immediate setup
     if (!setupBackButton()) {
-        // If that fails, try with a tiny delay
-        setTimeout(setupBackButton, 10);
-    }
-})();
-
-// Set up back button event listener
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, setting up back button listener');
-    const backButton = document.getElementById('backButton');
-    if (backButton) {
-        console.log('Back button found, adding click listener');
-        backButton.addEventListener('click', function(event) {
-            console.log('Back button clicked!');
-            event.preventDefault();
-            goBack();
-        });
-    } else {
-        console.error('Back button not found!');
-    }
-});
-
-// Also set up listener after a short delay in case DOM isn't ready
-setTimeout(function() {
-    const backButton = document.getElementById('backButton');
-    if (backButton && !backButton.onclick) {
-        console.log('Setting up delayed back button listener');
-        backButton.addEventListener('click', function(event) {
-            console.log('Back button clicked (delayed setup)!');
-            event.preventDefault();
-            goBack();
+        // If immediate setup fails, wait for DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            const backButton = document.getElementById('backButton');
+            if (backButton) {
+                backButton.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    goBack();
+                });
+            }
         });
     }
-}, 100);`;
+})();`;
     }
     
     /**

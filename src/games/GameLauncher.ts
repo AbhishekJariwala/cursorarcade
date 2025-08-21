@@ -21,8 +21,8 @@ export class GameLauncher {
         const nonce = getNonce();
         
         // Determine layout mode
-        const isSidebar = viewType === 'subwaySurfersView';
-        const isBottomPanel = viewType === 'subwaySurfersBottomView';
+        const isSidebar = viewType === 'ideArcadeView';
+        const isBottomPanel = viewType === 'ideArcadeBottomView';
         
         const styles = getAllSharedStyles() + `
   @import url('https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;500;700&display=swap');
@@ -134,32 +134,24 @@ export class GameLauncher {
         const scripts = `
   // Game launcher functionality
   function launchGame(gameType) {
-    console.log('launchGame called with:', gameType);
     // Send message to VS Code extension to launch specific game
     const vscode = acquireVsCodeApi();
-    console.log('vscode API acquired:', vscode);
     vscode.postMessage({
       command: 'launchGame',
       game: gameType
     });
-    console.log('Message posted to VS Code');
   }
   
   // Add click event listeners to game cards
   document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, setting up event listeners');
     const gameCards = document.querySelectorAll('.game-card');
     gameCards.forEach(card => {
-      console.log('Setting up click listener for:', card);
       card.addEventListener('click', function() {
         const gameId = this.getAttribute('data-game-id');
-        console.log('Card clicked, game ID:', gameId);
         launchGame(gameId);
       });
     });
-  });
-  
-  console.log('Game launcher scripts loaded');`;
+  });`;
 
         return getBasicHtmlTemplate(webview, nonce, 'IDE Arcade') + `
 <style>

@@ -19,14 +19,10 @@ export class GameViewProvider implements vscode.WebviewViewProvider {
      * @param webviewView The webview view to resolve
      */
     resolveWebviewView(webviewView: vscode.WebviewView): void | Thenable<void> {
-        console.log('Resolving webview view:', webviewView.viewType);
-        
         // Store the view type for responsive design
         this.viewType = webviewView.viewType;
-        const isBottomPanel = webviewView.viewType === 'subwaySurfersBottomView';
-        const isSidebar = webviewView.viewType === 'subwaySurfersView';
-        
-        console.log('View context:', { viewType: this.viewType, isBottomPanel, isSidebar });
+        const isBottomPanel = webviewView.viewType === 'ideArcadeBottomView';
+        const isSidebar = webviewView.viewType === 'ideArcadeView';
         
         // Configure webview options with proper security settings
         webviewView.webview.options = {
@@ -38,25 +34,22 @@ export class GameViewProvider implements vscode.WebviewViewProvider {
         // Set up message handling for game selection and navigation
         webviewView.webview.onDidReceiveMessage(
             message => {
-                console.log('GameViewProvider received message:', message);
                 switch (message.command) {
                     case 'launchGame':
-                        console.log('Launching game:', message.game);
                         this.launchGame(message.game, webviewView.webview);
                         break;
                     case 'goBack':
-                        console.log('Going back to launcher');
                         this.showLauncher(webviewView.webview);
                         break;
                     default:
-                        console.warn('Unknown command received:', message.command);
+                        // Unknown command received
+                        break;
                 }
             }
         );
         
         // Show the game launcher by default
         this.showLauncher(webviewView.webview);
-        console.log('Webview HTML set successfully');
     }
 
     /**
@@ -69,9 +62,7 @@ export class GameViewProvider implements vscode.WebviewViewProvider {
         if (game) {
             this.currentGame = game;
             webview.html = game.getHtml(webview, this.extensionUri, this.viewType);
-            console.log(`Launched game: ${game.getName()}`);
         } else {
-            console.error(`Game not found: ${gameType}`);
             this.showLauncher(webview);
         }
     }
@@ -81,10 +72,8 @@ export class GameViewProvider implements vscode.WebviewViewProvider {
      * @param webview The webview instance
      */
     private showLauncher(webview: vscode.Webview): void {
-        console.log('showLauncher called - returning to game hub');
         this.currentGame = null;
         webview.html = this.gameLauncher.getHtml(webview, this.extensionUri, this.viewType);
-        console.log('Game launcher HTML set successfully');
     }
 
     /**
@@ -101,42 +90,5 @@ export class GameViewProvider implements vscode.WebviewViewProvider {
      */
     getGameLauncher(): GameLauncher {
         return this.gameLauncher;
-    }
-
-    /**
-     * Gets the webview content with proper HTML structure
-     * @param webview The webview instance
-     * @returns HTML string for the webview
-     */
-    private getWebviewContent(webview: vscode.Webview): string {
-        return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${this.getNonce()}' 'unsafe-eval';">
-    <title>IDE Arcade</title>
-</head>
-<body>
-    <div id="app"></div>
-    <script nonce="${this.getNonce()}">
-        const vscode = acquireVsCodeApi();
-        // This will be replaced by the actual content
-    </script>
-</body>
-</html>`;
-    }
-
-    /**
-     * Generates a nonce for security
-     * @returns A random nonce string
-     */
-    private getNonce(): string {
-        let text = '';
-        const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        for (let i = 0; i < 32; i++) {
-            text += possible.charAt(Math.floor(Math.random() * possible.length));
-        }
-        return text;
     }
 }

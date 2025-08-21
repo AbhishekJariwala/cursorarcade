@@ -8,8 +8,6 @@ import { SnakeGame } from './games/Snake';
 import { Game2048 } from './games/Game2048';
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Subway Surfers extension is now active!');
-
     // Initialize all available games
     const games = [
         new SubwaySurfersGame(),
@@ -22,17 +20,14 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register game webview view providers for sidebar and bottom panel
     context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider('subwaySurfersView', gameProvider)
+        vscode.window.registerWebviewViewProvider('ideArcadeView', gameProvider)
     );
     context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider('subwaySurfersBottomView', gameProvider)
+        vscode.window.registerWebviewViewProvider('ideArcadeBottomView', gameProvider)
     );
-    console.log('Game webview view providers registered for sidebar and bottom');
 
     // Register all game commands
     registerGameCommands(context, games, gameProvider.getGameLauncher());
-
-    console.log('All commands registered successfully');
 }
 
 export function deactivate() {}

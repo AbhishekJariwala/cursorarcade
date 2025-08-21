@@ -61,7 +61,7 @@ export class SnakeGame extends BaseGame {
   }
   
   .game-over {
-    position: absolute;
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -73,6 +73,7 @@ export class SnakeGame extends BaseGame {
     border: 3px solid #DBDFDF;
     font-family: 'Fira Mono', monospace;
     box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+    z-index: 1000;
   }
   
   .game-over h2 {
@@ -156,7 +157,16 @@ class SnakeGame {
     this.canvas = document.getElementById('gameContainer');
     this.ctx = this.canvas.getContext('2d');
     this.gridSize = 20;
-    this.snake = [{x: 10, y: 10}];
+    
+    // Calculate grid dimensions based on actual canvas size
+    this.gridWidth = Math.floor(this.canvas.width / this.gridSize);
+    this.gridHeight = Math.floor(this.canvas.height / this.gridSize);
+    
+    // Start snake in the center of the grid
+    const centerX = Math.floor(this.gridWidth / 2);
+    const centerY = Math.floor(this.gridHeight / 2);
+    this.snake = [{x: centerX, y: centerY}];
+    
     this.food = this.generateFood();
     this.direction = 'right';
     this.score = 0;
@@ -171,14 +181,26 @@ class SnakeGame {
     let food;
     do {
       food = {
-        x: Math.floor(Math.random() * (this.canvas.width / this.gridSize)),
-        y: Math.floor(Math.random() * (this.canvas.height / this.gridSize))
+        x: Math.floor(Math.random() * this.gridWidth),
+        y: Math.floor(Math.random() * this.gridHeight)
       };
     } while (this.snake.some(segment => segment.x === food.x && segment.y === food.y));
     return food;
   }
   
   bindEvents() {
+    // Use a hidden input to capture keyboard events properly
+    const keyboardInput = document.createElement('input');
+    keyboardInput.type = 'text';
+    keyboardInput.style.position = 'absolute';
+    keyboardInput.style.top = '-9999px';
+    keyboardInput.style.left = '-9999px';
+    keyboardInput.tabIndex = 0;
+    keyboardInput.autocomplete = 'off';
+    document.body.appendChild(keyboardInput);
+    keyboardInput.focus();
+    
+    // Global keyboard event listener
     document.addEventListener('keydown', (e) => {
       if (this.gameOver) return;
       
@@ -186,24 +208,46 @@ class SnakeGame {
         case 'ArrowUp':
         case 'w':
         case 'W':
+          e.preventDefault();
+          e.stopPropagation();
           if (this.direction !== 'down') this.direction = 'up';
           break;
         case 'ArrowDown':
         case 's':
         case 'S':
+          e.preventDefault();
+          e.stopPropagation();
           if (this.direction !== 'up') this.direction = 'down';
           break;
         case 'ArrowLeft':
         case 'a':
         case 'A':
+          e.preventDefault();
+          e.stopPropagation();
           if (this.direction !== 'right') this.direction = 'left';
           break;
         case 'ArrowRight':
         case 'd':
         case 'D':
+          e.preventDefault();
+          e.stopPropagation();
           if (this.direction !== 'left') this.direction = 'right';
           break;
       }
+    });
+    
+    // Ensure the hidden input stays focused for keyboard input
+    document.addEventListener('click', () => {
+      keyboardInput.focus();
+    });
+    
+    // Prevent focus loss
+    document.addEventListener('blur', () => {
+      setTimeout(() => keyboardInput.focus(), 0);
+    });
+    
+    keyboardInput.addEventListener('blur', () => {
+      setTimeout(() => keyboardInput.focus(), 0);
     });
   }
   
@@ -220,26 +264,28 @@ class SnakeGame {
     }
     
     // Check wall collision
-    if (head.x < 0 || head.x >= this.canvas.width / this.gridSize ||
-        head.y < 0 || head.y >= this.canvas.height / this.gridSize) {
+    if (head.x < 0 || head.x >= this.gridWidth || head.y < 0 || head.y >= this.gridHeight) {
       this.endGame();
       return;
     }
     
-    // Check self collision
+    // Check self collision BEFORE adding the new head
     if (this.snake.some(segment => segment.x === head.x && segment.y === head.y)) {
       this.endGame();
       return;
     }
     
+    // Add new head
     this.snake.unshift(head);
     
-    // Check food collision
+    // Check food collision and handle growth
     if (head.x === this.food.x && head.y === this.food.y) {
       this.score += 10;
       this.food = this.generateFood();
       this.speed = Math.max(50, this.speed - 2);
+      // Don't remove tail (snake grows)
     } else {
+      // Remove tail (snake moves without growing)
       this.snake.pop();
     }
     
@@ -296,6 +342,8 @@ class SnakeGame {
       <p>Final Score: \${this.score}</p>
       <button class="play-again-btn" id="playAgainBtn">Play Again</button>
     \`;
+    
+    // Append overlay to body since we're using position: fixed
     document.body.appendChild(overlay);
     
     // Add event listener to the play again button
@@ -306,13 +354,18 @@ class SnakeGame {
   }
   
   reset() {
-    this.snake = [{x: 10, y: 10}];
+    // Reset snake to center of grid
+    const centerX = Math.floor(this.gridWidth / 2);
+    const centerY = Math.floor(this.gridHeight / 2);
+    this.snake = [{x: centerX, y: centerY}];
+    
     this.food = this.generateFood();
     this.direction = 'right';
     this.score = 0;
     this.gameOver = false;
     this.speed = 150;
     
+    // Remove overlay from body since that's where we place it
     const overlay = document.body.querySelector('.game-over');
     if (overlay) overlay.remove();
     

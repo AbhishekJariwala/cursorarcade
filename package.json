@@ -1,50 +1,59 @@
 {
-  "name": "subway-surfers-game",
-  "displayName": "Subway Surfers Game",
-  "description": "Play a Subway Surfers-like game in VS Code",
-  "version": "0.0.1",
+  "name": "ide-arcade",
+  "displayName": "IDE Arcade",
+  "description": "Play classic games directly in VS Code - perfect for coding breaks!",
+  "publisher": "AbhishekJariwala",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AbhishekJariwala/vscodesubwaysurfers.git"
+  },
+  "keywords": ["games", "arcade", "entertainment", "break", "fun"],
   "engines": {
     "vscode": "^1.74.0"
   },
-  "categories": ["Other"],
+  "categories": ["Other", "Entertainment"],
+  "icon": "media/IDEArcade.png",
+  "galleryBanner": {
+    "color": "#151110",
+    "theme": "dark"
+  },
   "activationEvents": [
-    "onCommand:subwaySurfers.test",
-    "onCommand:subwaySurfers.debug",
-    "onCommand:subwaySurfers.start",
-    "onCommand:subwaySurfers.openSidebar",
-    "onCommand:subwaySurfers.openBottom",
-    "onView:subwaySurfersView",
-    "onView:subwaySurfersBottomView"
+    "onCommand:ideArcade.start",
+    "onCommand:ideArcade.openSidebar",
+    "onCommand:ideArcade.openBottom",
+    "onView:ideArcadeView",
+    "onView:ideArcadeBottomView"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "subway-surfers",
-          "title": "Subway Surfers",
-          "icon": "media/game.svg"
+          "id": "ide-arcade",
+          "title": "IDE Arcade",
+          "icon": "media/IDEArcade.svg"
         }
       ],
       "panel": [
         {
-          "id": "subway-surfers-panel",
-          "title": "Subway Surfers",
-          "icon": "media/game.svg"
+          "id": "ide-arcade-panel",
+          "title": "IDE Arcade",
+          "icon": "media/IDEArcade.svg"
         }
       ]
     },
     "views": {
-      "subway-surfers": [
+      "ide-arcade": [
         {
-          "id": "subwaySurfersView",
+          "id": "ideArcadeView",
           "name": "Game",
           "type": "webview"
         }
       ],
-      "subway-surfers-panel": [
+      "ide-arcade-panel": [
         {
-          "id": "subwaySurfersBottomView",
+          "id": "ideArcadeBottomView",
           "name": "Game",
           "type": "webview"
         }
@@ -52,35 +61,25 @@
     },
     "commands": [
       {
-        "command": "subwaySurfers.test",
-        "title": "Test Subway Surfers Extension",
-        "category": "Subway Surfers"
+        "command": "ideArcade.start",
+        "title": "Start IDE Arcade (Tab)",
+        "category": "IDE Arcade"
       },
       {
-        "command": "subwaySurfers.debug",
-        "title": "Debug Subway Surfers Extension",
-        "category": "Subway Surfers"
+        "command": "ideArcade.openSidebar",
+        "title": "Open IDE Arcade (Sidebar)",
+        "category": "IDE Arcade"
       },
       {
-        "command": "subwaySurfers.start",
-        "title": "Start Subway Surfers (Tab)",
-        "category": "Subway Surfers"
-      },
-      {
-        "command": "subwaySurfers.openSidebar",
-        "title": "Open Subway Surfers (Sidebar)",
-        "category": "Subway Surfers"
-      },
-      {
-        "command": "subwaySurfers.openBottom",
-        "title": "Open Subway Surfers (Bottom Panel)",
-        "category": "Subway Surfers"
+        "command": "ideArcade.openBottom",
+        "title": "Open IDE Arcade (Bottom Panel)",
+        "category": "IDE Arcade"
       }
     ],
     "menus": {
       "commandPalette": [
-        { "command": "subwaySurfers.openSidebar" },
-        { "command": "subwaySurfers.openBottom" }
+        { "command": "ideArcade.openSidebar" },
+        { "command": "ideArcade.openBottom" }
       ]
     }
   },

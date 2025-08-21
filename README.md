@@ -1,4 +1,4 @@
-# VS Code Game Hub 🎮
+# IDE Arcade 🎮
 
 A VS Code extension that brings classic games directly into your editor - perfect for taking breaks while your code compiles!
 
@@ -32,18 +32,18 @@ A VS Code extension that brings classic games directly into your editor - perfec
 
 ## 🚀 Getting Started
 
-1. **Install the Extension**: Install "VS Code Game Hub" from the VS Code marketplace
-2. **Open Game Hub**: 
+1. **Install the Extension**: Install "IDE Arcade" from the VS Code marketplace
+2. **Open IDE Arcade**: 
    - Click the game controller icon in the activity bar (left sidebar)
-   - Or use Command Palette: `Subway Surfers: Open Game Hub (Sidebar)`
+   - Or use Command Palette: `IDE Arcade: Open IDE Arcade (Sidebar)`
 3. **Choose Your Game**: Click on any game card to start playing
 4. **Play & Enjoy**: Use the controls shown in each game
 
 ## 🎯 Commands
 
-- `Subway Surfers: Open Game Hub (Sidebar)` - Open games in the sidebar
-- `Subway Surfers: Open Game Hub (Bottom Panel)` - Open games in the bottom panel
-- `Subway Surfers: Start Game (Tab)` - Open games in a new tab
+- `IDE Arcade: Open IDE Arcade (Sidebar)` - Open games in the sidebar
+- `IDE Arcade: Open IDE Arcade (Bottom Panel)` - Open games in the bottom panel
+- `IDE Arcade: Start IDE Arcade (Tab)` - Open games in a new tab
 
 ## 🏆 Statistics
 
