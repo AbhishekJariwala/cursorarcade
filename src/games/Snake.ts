@@ -32,15 +32,15 @@ export class SnakeGame extends BaseGame {
   }
   
   #gameContainer {
-    border: 3px solid #4A90E2;
-    background: #000;
+    border: 3px solid #DBDFDF;
+    background: #151110;
     position: relative;
     border-radius: 8px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.5);
   }
   
   #score {
-    color: #4A90E2;
+    color: #DBDFDF;
     font-size: 1.8em;
     font-weight: 700;
     margin-bottom: 20px;
@@ -65,24 +65,24 @@ export class SnakeGame extends BaseGame {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(20, 30, 16, 0.95);
+    background: rgba(21, 17, 16, 0.95);
     color: #FFFFFF;
     padding: 40px;
     border-radius: 12px;
     text-align: center;
-    border: 3px solid #4A90E2;
+    border: 3px solid #DBDFDF;
     font-family: 'Fira Mono', monospace;
     box-shadow: 0 12px 32px rgba(0,0,0,0.5);
   }
   
   .game-over h2 {
-    color: #FF6B6B;
+    color: #DBDFDF;
     margin-bottom: 20px;
     font-size: 1.8em;
   }
   
   .game-over button {
-    background: #4A90E2;
+    background: #201E1C;
     color: #FFFFFF;
     border: none;
     padding: 12px 24px;
@@ -95,12 +95,13 @@ export class SnakeGame extends BaseGame {
   }
   
   .game-over button:hover {
-    background: #357ABD;
+    background: #DBDFDF;
+    color: #151110;
     transform: translateY(-2px);
   }
   
   .play-again-btn {
-    background: #4A90E2;
+    background: #201E1C;
     color: #FFFFFF;
     border: none;
     padding: 12px 24px;
@@ -113,7 +114,8 @@ export class SnakeGame extends BaseGame {
   }
   
   .play-again-btn:hover {
-    background: #357ABD;
+    background: #DBDFDF;
+    color: #151110;
     transform: translateY(-2px);
   }
   
@@ -134,7 +136,7 @@ export class SnakeGame extends BaseGame {
   }
   
   .back-btn:hover {
-    background: #2A2826;
+    background: #201E1C;
     border-color: #FFFFFF;
     transform: translateY(-2px);
   }`;
@@ -245,16 +247,16 @@ class SnakeGame {
   }
   
   draw() {
-    this.ctx.fillStyle = '#000';
+    this.ctx.fillStyle = '#151110';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     
     // Draw snake
-    this.ctx.fillStyle = '#4CAF50';
+    this.ctx.fillStyle = '#DBDFDF';
     this.snake.forEach((segment, index) => {
       if (index === 0) {
-        this.ctx.fillStyle = '#66BB6A';
+        this.ctx.fillStyle = '#FFFFFF';
       } else {
-        this.ctx.fillStyle = '#4CAF50';
+        this.ctx.fillStyle = '#DBDFDF';
       }
       this.ctx.fillRect(
         segment.x * this.gridSize,
@@ -265,7 +267,7 @@ class SnakeGame {
     });
     
     // Draw food
-    this.ctx.fillStyle = '#FF5722';
+    this.ctx.fillStyle = '#201E1C';
     this.ctx.fillRect(
       this.food.x * this.gridSize,
       this.food.y * this.gridSize,

@@ -60,7 +60,7 @@ export class GameLauncher {
   .subtitle {
     font-size: 1em;
     margin-bottom: 40px;
-    opacity: 0.8;
+    color: #DBDFDF;
     font-weight: 400;
   }
   
@@ -87,8 +87,13 @@ export class GameLauncher {
   }
   
   .game-card:hover {
-    background: #2A2826;
+    background: #DBDFDF;
     transform: translateY(-2px);
+  }
+  
+  .game-card:hover .game-title,
+  .game-card:hover .game-description {
+    color: #151110;
   }
   
   .game-title {
@@ -101,47 +106,13 @@ export class GameLauncher {
   
   .game-description {
     font-size: 0.9em;
-    opacity: 0.8;
     line-height: 1.3;
     color: #DBDFDF;
     margin-top: 5px;
     font-family: 'Fira Mono', monospace;
   }
   
-  .stats {
-    margin-top: 40px;
-    padding-top: 30px;
-    border-top: 1px solid #2A2826;
-  }
-  
-  .stats h3 {
-    font-size: 1.1em;
-    margin-bottom: 20px;
-    color: #DBDFDF;
-  }
-  
-  .stats-grid {
-    display: grid;
-    grid-template-columns: ${isSidebar ? 'repeat(1, 1fr)' : 'repeat(3, 1fr)'};
-    gap: 15px;
-  }
-  
-  .stat-item {
-    text-align: center;
-  }
-  
-  .stat-value {
-    font-size: 1.5em;
-    font-weight: 700;
-    color: #FFFFFF;
-    margin-bottom: 5px;
-  }
-  
-  .stat-label {
-    font-size: 0.8em;
-    color: #DBDFDF;
-    opacity: 0.8;
-  }`;
+`;
 
         const bodyContent = `
   <div class="container">
@@ -157,24 +128,6 @@ export class GameLauncher {
           <div class="game-description">${game.getDescription()}</div>
         </div>
       `).join('')}
-    </div>
-    
-    <div class="stats">
-      <h3>📊 Your Stats</h3>
-      <div class="stats-grid">
-        <div class="stat-item">
-          <div class="stat-value" id="totalGames">0</div>
-          <div class="stat-label">Games Played</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value" id="bestScore">0</div>
-          <div class="stat-label">Best Score</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value" id="totalTime">0m</div>
-          <div class="stat-label">Total Time</div>
-        </div>
-      </div>
     </div>
   </div>`;
 
@@ -192,17 +145,6 @@ export class GameLauncher {
     console.log('Message posted to VS Code');
   }
   
-  // Load stats from localStorage
-  function loadStats() {
-    const totalGames = localStorage.getItem('totalGames') || 0;
-    const bestScore = localStorage.getItem('bestScore') || 0;
-    const totalTime = localStorage.getItem('totalTime') || 0;
-    
-    document.getElementById('totalGames').textContent = totalGames;
-    document.getElementById('bestScore').textContent = bestScore;
-    document.getElementById('totalTime').textContent = totalTime + 'm';
-  }
-  
   // Add click event listeners to game cards
   document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, setting up event listeners');
@@ -217,8 +159,6 @@ export class GameLauncher {
     });
   });
   
-  // Initialize stats
-  loadStats();
   console.log('Game launcher scripts loaded');`;
 
         return getBasicHtmlTemplate(webview, nonce, 'IDE Arcade') + `

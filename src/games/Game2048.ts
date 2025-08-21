@@ -121,17 +121,17 @@ export class Game2048 extends BaseGame {
     transform: scale(1.05);
   }
   
-  .tile-2 { background: #4A90E2; color: #FFFFFF; }
-  .tile-4 { background: #50C878; color: #FFFFFF; }
-  .tile-8 { background: #FF6B6B; color: #FFFFFF; }
-  .tile-16 { background: #FFD93D; color: #151110; }
-  .tile-32 { background: #FF8C42; color: #FFFFFF; }
-  .tile-64 { background: #9B59B6; color: #FFFFFF; }
-  .tile-128 { background: #E74C3C; color: #FFFFFF; font-size: 1.3em; }
-  .tile-256 { background: #F39C12; color: #FFFFFF; font-size: 1.3em; }
-  .tile-512 { background: #E67E22; color: #FFFFFF; font-size: 1.3em; }
-  .tile-1024 { background: #D35400; color: #FFFFFF; font-size: 1.1em; }
-  .tile-2048 { background: #C0392B; color: #FFFFFF; font-size: 1.1em; }
+  .tile-2 { background: #DBDFDF; color: #151110; }
+  .tile-4 { background: #201E1C; color: #FFFFFF; }
+  .tile-8 { background: #C5CACA; color: #151110; }
+  .tile-16 { background: #1B1A18; color: #FFFFFF; }
+  .tile-32 { background: #F0F2F2; color: #151110; }
+  .tile-64 { background: #141312; color: #FFFFFF; }
+  .tile-128 { background: #E8EAEA; color: #151110; font-size: 1.3em; }
+  .tile-256 { background: #0F0E0D; color: #FFFFFF; font-size: 1.3em; }
+  .tile-512 { background: #B8BDBD; color: #151110; font-size: 1.3em; }
+  .tile-1024 { background: #252420; color: #FFFFFF; font-size: 1.1em; }
+  .tile-2048 { background: #FFFFFF; color: #151110; font-size: 1.1em; font-weight: bold; }
   
   .controls {
     margin-top: 30px;
@@ -156,13 +156,13 @@ export class Game2048 extends BaseGame {
   }
   
   .game-over h2 {
-    color: #FF6B6B;
+    color: #DBDFDF;
     margin-bottom: 20px;
     font-size: 1.8em;
   }
   
   .game-over button {
-    background: #4A90E2;
+    background: #201E1C;
     color: #FFFFFF;
     border: none;
     padding: 12px 24px;
@@ -175,12 +175,13 @@ export class Game2048 extends BaseGame {
   }
   
   .game-over button:hover {
-    background: #357ABD;
+    background: #DBDFDF;
+    color: #151110;
     transform: translateY(-2px);
   }
   
   .play-again-btn {
-    background: #4A90E2;
+    background: #201E1C;
     color: #FFFFFF;
     border: none;
     padding: 12px 24px;
@@ -193,7 +194,8 @@ export class Game2048 extends BaseGame {
   }
   
   .play-again-btn:hover {
-    background: #357ABD;
+    background: #DBDFDF;
+    color: #151110;
     transform: translateY(-2px);
   }
   

@@ -36,9 +36,9 @@ export class SubwaySurfersGame extends BaseGame {
     overflow: hidden; 
     margin: 0 auto;
     background:
-      linear-gradient(to right, rgba(74, 144, 226, 0.15) 0, rgba(74, 144, 226, 0.15) 2px, transparent 2px) 33.33% 0/33.33% 100%,
-      linear-gradient(to right, rgba(74, 144, 226, 0.15) 0, rgba(74, 144, 226, 0.15) 2px, transparent 2px) 66.66% 0/33.33% 100%,
-      radial-gradient(circle at 50% -20%, #4A90E2, #151110 55%);
+      linear-gradient(to right, rgba(219, 223, 223, 0.15) 0, rgba(219, 223, 223, 0.15) 2px, transparent 2px) 33.33% 0/33.33% 100%,
+      linear-gradient(to right, rgba(219, 223, 223, 0.15) 0, rgba(219, 223, 223, 0.15) 2px, transparent 2px) 66.66% 0/33.33% 100%,
+      #151110;
     background-repeat: no-repeat;
     border-radius: 8px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.5);
@@ -47,7 +47,7 @@ export class SubwaySurfersGame extends BaseGame {
   #player { 
     width: 44px; 
     height: 52px; 
-    background: linear-gradient(#FFD93D, #F39C12); 
+    background: #DBDFDF; 
     border-radius: 12px; 
     position: absolute; 
     bottom: 68px; 
@@ -62,7 +62,7 @@ export class SubwaySurfersGame extends BaseGame {
   .obstacle { 
     width: 46px; 
     height: 56px; 
-    background: linear-gradient(#FF6B6B, #E74C3C); 
+    background: #201E1C; 
     border-radius: 6px; 
     position: absolute; 
     box-shadow: 0 4px 8px rgba(0,0,0,0.35); 
@@ -72,7 +72,7 @@ export class SubwaySurfersGame extends BaseGame {
   .train { 
     width: 64px; 
     height: 120px; 
-    background: linear-gradient(#9B59B6, #8E44AD); 
+    background: #151110; 
     border-radius: 8px; 
     position: absolute; 
     box-shadow: 0 8px 16px rgba(0,0,0,0.45); 
@@ -82,10 +82,10 @@ export class SubwaySurfersGame extends BaseGame {
   .coin { 
     width: 26px; 
     height: 26px; 
-    background: #FFD93D; 
+    background: #DBDFDF; 
     border-radius: 50%; 
     position: absolute; 
-    border: 3px solid #F39C12; 
+    border: 3px solid #201E1C; 
     box-shadow: 0 2px 6px rgba(0,0,0,0.35); 
     animation: spin 1s linear infinite; 
   }
@@ -107,7 +107,7 @@ export class SubwaySurfersGame extends BaseGame {
     background: #201E1C;
     padding: 10px 15px;
     border-radius: 8px;
-    border: 2px solid #4A90E2;
+    border: 2px solid #DBDFDF;
     font-family: 'Fira Mono', monospace;
   }
   
@@ -132,25 +132,25 @@ export class SubwaySurfersGame extends BaseGame {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(20, 30, 16, 0.95);
+    background: rgba(21, 17, 16, 0.95);
     color: #FFFFFF;
     padding: 40px;
     border-radius: 12px;
     text-align: center;
-    border: 3px solid #4A90E2;
+    border: 3px solid #DBDFDF;
     font-family: 'Fira Mono', monospace;
     box-shadow: 0 12px 32px rgba(0,0,0,0.5);
     z-index: 1000;
   }
   
   .game-over h2 {
-    color: #FF6B6B;
+    color: #DBDFDF;
     margin-bottom: 20px;
     font-size: 1.8em;
   }
   
   .game-over button {
-    background: #4A90E2;
+    background: #201E1C;
     color: #FFFFFF;
     border: none;
     padding: 12px 24px;
@@ -163,12 +163,13 @@ export class SubwaySurfersGame extends BaseGame {
   }
   
   .game-over button:hover {
-    background: #357ABD;
+    background: #DBDFDF;
+    color: #151110;
     transform: translateY(-2px);
   }
   
   .play-again-btn {
-    background: #4A90E2;
+    background: #201E1C;
     color: #FFFFFF;
     border: none;
     padding: 12px 24px;
@@ -181,7 +182,8 @@ export class SubwaySurfersGame extends BaseGame {
   }
   
   .play-again-btn:hover {
-    background: #357ABD;
+    background: #DBDFDF;
+    color: #151110;
     transform: translateY(-2px);
   }
   
