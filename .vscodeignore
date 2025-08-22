@@ -1,0 +1,16 @@
+# Source files
+src/
+tsconfig.json
+
+# Development files
+.gitignore
+DEBUGGING.md
+REFACTORING_SUMMARY.md
+.vscode/
+.conductor/
+
+# Dependencies (not needed in production)
+node_modules/
+
+# Build artifacts
+*.vsix

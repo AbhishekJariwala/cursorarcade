@@ -12,7 +12,7 @@
   "engines": {
     "vscode": "^1.74.0"
   },
-  "categories": ["Other", "Entertainment"],
+  "categories": ["Other"],
   "icon": "media/IDEArcade.png",
   "galleryBanner": {
     "color": "#151110",
