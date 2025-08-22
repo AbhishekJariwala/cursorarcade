@@ -112,6 +112,46 @@ export class GameLauncher {
     font-family: 'Fira Mono', monospace;
   }
   
+  .footer-links {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: ${isSidebar ? 'column' : 'row'};
+    gap: ${isSidebar ? '15px' : '20px'};
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .footer-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: #201E1C;
+    border: 2px solid #DBDFDF;
+    border-radius: 8px;
+    color: #DBDFDF;
+    text-decoration: none;
+    font-family: 'Fira Mono', monospace;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .footer-link:hover {
+    background: #DBDFDF;
+    color: #151110;
+    transform: translateY(-2px);
+    border-color: #FFFFFF;
+  }
+  
+  .link-icon {
+    font-size: 1.1em;
+  }
+  
+  .link-text {
+    font-weight: 500;
+  }
+  
 `;
 
         const bodyContent = `
@@ -128,6 +168,17 @@ export class GameLauncher {
           <div class="game-description">${game.getDescription()}</div>
         </div>
       `).join('')}
+    </div>
+    
+    <div class="footer-links">
+      <a href="https://github.com/AbhishekJariwala/cursorarcade" target="_blank" class="footer-link">
+        <span class="link-icon">📚</span>
+        <span class="link-text">View on GitHub</span>
+      </a>
+      <a href="https://buymeacoffee.com/abhijariwala" target="_blank" class="footer-link">
+        <span class="link-icon">☕</span>
+        <span class="link-text">Buy me a coffee</span>
+      </a>
     </div>
   </div>`;
 
@@ -149,6 +200,23 @@ export class GameLauncher {
       card.addEventListener('click', function() {
         const gameId = this.getAttribute('data-game-id');
         launchGame(gameId);
+      });
+    });
+    
+    // Add click event listeners to footer links
+    const footerLinks = document.querySelectorAll('.footer-link');
+    footerLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const href = this.getAttribute('href');
+        if (href) {
+          // Send message to VS Code to open external link
+          const vscode = acquireVsCodeApi();
+          vscode.postMessage({
+            command: 'openExternalLink',
+            url: href
+          });
+        }
       });
     });
   });`;

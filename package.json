@@ -3,10 +3,10 @@
   "displayName": "IDE Arcade",
   "description": "Play classic games directly in VS Code - perfect for coding breaks!",
   "publisher": "AbhishekJariwala",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AbhishekJariwala/vscodesubwaysurfers.git"
+    "url": "https://github.com/AbhishekJariwala/cursorarcade"
   },
   "keywords": ["games", "arcade", "entertainment", "break", "fun"],
   "engines": {

@@ -88,4 +88,12 @@ Planned additions:
 **Happy Gaming! 🎮✨**
 
 *Built with ❤️ for the VS Code community*
-# cursorarcade
+
+## 🔗 Links
+
+- **GitHub Repository**: [View on GitHub](https://github.com/AbhishekJariwala/cursorarcade)
+- **Support the Project**: [Buy me a coffee ☕](https://buymeacoffee.com/abhijariwala)
+
+---
+
+*IDE Arcade - Gaming breaks for developers*

@@ -14,3 +14,6 @@ node_modules/
 
 # Build artifacts
 *.vsix
+
+# Large media files
+Launch.mp4

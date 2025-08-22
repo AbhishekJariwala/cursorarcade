@@ -41,6 +41,12 @@ export class GameViewProvider implements vscode.WebviewViewProvider {
                     case 'goBack':
                         this.showLauncher(webviewView.webview);
                         break;
+                    case 'openExternalLink':
+                        // Open external links in the default browser
+                        if (message.url) {
+                            vscode.env.openExternal(vscode.Uri.parse(message.url));
+                        }
+                        break;
                     default:
                         // Unknown command received
                         break;

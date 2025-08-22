@@ -23,6 +23,35 @@ export function registerGameCommands(
                 vscode.ViewColumn.One,
                 { enableScripts: true }
             );
+            
+            // Set up message handling for the panel
+            panel.webview.onDidReceiveMessage(
+                message => {
+                    switch (message.command) {
+                        case 'launchGame':
+                            // Handle game launching in panel mode
+                            const game = gameLauncher.getGameById(message.game);
+                            if (game) {
+                                panel.webview.html = game.getHtml(panel.webview, context.extensionUri);
+                            }
+                            break;
+                        case 'goBack':
+                            // Return to launcher
+                            panel.webview.html = gameLauncher.getHtml(panel.webview, context.extensionUri);
+                            break;
+                        case 'openExternalLink':
+                            // Open external links in the default browser
+                            if (message.url) {
+                                vscode.env.openExternal(vscode.Uri.parse(message.url));
+                            }
+                            break;
+                        default:
+                            // Unknown command received
+                            break;
+                    }
+                }
+            );
+            
             panel.webview.html = gameLauncher.getHtml(panel.webview, context.extensionUri);
         })
     );
